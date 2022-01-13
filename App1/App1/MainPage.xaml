@@ -9,9 +9,9 @@
         </Frame>
 
         <Entry x:Name="nameOfTeacher" Placeholder="Введите имя преподавателя"></Entry>
-        <Button x:Name="giveName" Text="Получить список через КузГТУ api"></Button>
-        <Button x:Name="giveNameByBackend" Text="Получить имя через мой гениальный api"></Button>
-        <Button x:Name="makeRectangle" Text="Вывести зоопарк"></Button>
+        <Button x:Name="giveName" Text="Поиск"></Button>
+        <Button x:Name="giveNameByBackend" Text="Быстрый тест моего гениального API"></Button>
+        <Button x:Name="giveNoticedTeachers" Text="Показать избранных преподавателей"></Button>
     </StackLayout>
 
 </ContentPage>

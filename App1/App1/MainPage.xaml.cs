@@ -23,17 +23,49 @@ namespace App1
 
         protected override void OnAppearing()
         {
-            giveName.Clicked += DoSomeFackingMagic;
-            giveNameByBackend.Clicked += DoSomeImpressiveFackihgMagic;
+            giveName.Clicked += DoSomeMagic;
+            giveNameByBackend.Clicked += DoSomeImpressiveMagic;
+            giveNoticedTeachers.Clicked += ShowNotices;
         }
 
-        private async void DoSomeFackingMagic(object sender, EventArgs e)
+        //Вывести отмеченных преподавателей
+        private async void ShowNotices(object sender, EventArgs e)
+        {
+            string url = $"{DataStorage.randomUrl}/api/THS/GiveNoticeTeachers";
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Headers.Add("Bypass-Tunnel-Reminder", "true");
+
+            request.ServerCertificateValidationCallback = delegate { return true; };
+
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+            List<TeacherForDB> searchedTeachers = new List<TeacherForDB>();
+            string textData;
+
+            using (StreamReader streamReader = new StreamReader(response.GetResponseStream()))
+            {
+                textData = streamReader.ReadToEnd();
+                searchedTeachers = JsonConvert.DeserializeObject<List<TeacherForDB>>(textData);
+            }
+
+            List<Teacher> result = new List<Teacher>();
+            foreach (TeacherForDB someTeacher in searchedTeachers)
+            {
+                result.Add(new Teacher { name = someTeacher.name, person_id = Convert.ToString(someTeacher.person_id) });
+            }
+
+            await Navigation.PushAsync(new Page1(result));
+        }
+
+        private async void DoSomeMagic(object sender, EventArgs e)
         {
             string teacherName = nameOfTeacher.Text;
 
-            string url = $"https://portal.kuzstu.ru/extra/api/teachers?teacher={teacherName}";
+            string url = $"{DataStorage.randomUrl}/api/THS/GiveTeachers/{teacherName}";
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Headers.Add("Bypass-Tunnel-Reminder", "true");
             request.ServerCertificateValidationCallback = delegate { return true; };
 
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
@@ -51,7 +83,7 @@ namespace App1
         }
 
         // lt -p 60748 -l localhost - всё, что нужно для полного счастья
-        private async void DoSomeImpressiveFackihgMagic(object sender, EventArgs e)
+        private async void DoSomeImpressiveMagic(object sender, EventArgs e)
         {
             string teacherName = nameOfTeacher.Text;
             string url = $"{DataStorage.randomUrl}/api/THS/GiveTeachers/{teacherName}";

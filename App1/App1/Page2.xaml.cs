@@ -29,7 +29,6 @@ namespace App1
         static Button applyFilters = new Button { Text = "Применить" };
         
         static StackLayout filtersStack = new StackLayout { Orientation = StackOrientation.Vertical, Children = { filtersLabel, lessonNomberEntry, lessonDate, applyFilters }, Margin = new Thickness(20) };
-        //
 
         public Page2(List<Timetable> searchedTimetable)
         {
@@ -39,7 +38,6 @@ namespace App1
             applyFilters.Clicked += OutputApplyedFiltersPage;
 
             //Отрисовка расписания
-            //Группа кабинет тип предемета предмет дата время
             ListView listView = new ListView
             {
                 HasUnevenRows = true,
@@ -104,7 +102,6 @@ namespace App1
                         {
                             Padding = new Thickness(0, 5),
                             Orientation = StackOrientation.Vertical,
-                            //Группа кабинет тип предемета предмет дата время
                             Children = { stackLayoutGroup, stackLayoutPlace, stackLayoutType, stackLayoutSubject, stackLayoutDate, stackLayoutLesson },
                         }
                     };
@@ -115,14 +112,14 @@ namespace App1
         private async void OutputApplyedFiltersPage(object sender, EventArgs e)
         {
             string lessonNomber = lessonNomberEntry.Text;
-            string date = ConvertTime(lessonDate.Date);
+            string date = ConvertDate(lessonDate.Date);
 
-            if (lessonNomber == " ")
+            if (lessonNomber == null)
             {
-                string url2 = $"https://portal.kuzstu.ru/extra/api/teacher_schedule?teacher_id={DataStorage.teacherId}";
+                string url2 = $"{DataStorage.randomUrl}/api/THS/GiveTimetableByDate/{DataStorage.teacherId}/{date}";
 
                 HttpWebRequest request2 = (HttpWebRequest)WebRequest.Create(url2);
-                request2.ServerCertificateValidationCallback = delegate { return true; };
+                request2.Headers.Add("Bypass-Tunnel-Reminder", "true");
 
                 HttpWebResponse response2 = (HttpWebResponse)request2.GetResponse();
 
@@ -132,19 +129,17 @@ namespace App1
                 using (StreamReader streamReader = new StreamReader(response2.GetResponseStream()))
                 {
                     textData2 = streamReader.ReadToEnd();
-                    //textData2 = Regex.Replace(textData2, @"\\u([0-9A-Fa-f]{4})", m => "" + (char)Convert.ToInt32(m.Groups[1].Value, 16));
                     result = JsonConvert.DeserializeObject<List<Timetable>>(textData2);
                 }
 
-                result = result.FindAll(item => item.date_lesson == date);
                 await Navigation.PushAsync(new Page2(result));
             }
             else
             {
-                string url2 = $"https://portal.kuzstu.ru/extra/api/teacher_schedule?teacher_id={DataStorage.teacherId}";
+                string url2 = $"{DataStorage.randomUrl}/api/THS/GiveTimetableAllFilters/{DataStorage.teacherId}/{date}/{lessonNomber}";
 
                 HttpWebRequest request2 = (HttpWebRequest)WebRequest.Create(url2);
-                request2.ServerCertificateValidationCallback = delegate { return true; };
+                request2.Headers.Add("Bypass-Tunnel-Reminder", "true");
 
                 HttpWebResponse response2 = (HttpWebResponse)request2.GetResponse();
 
@@ -157,8 +152,6 @@ namespace App1
                     result = JsonConvert.DeserializeObject<List<Timetable>>(textData2);
                 }
 
-                result = result.FindAll(item => item.date_lesson == date);
-                result = result.FindAll(item => item.lesson_number == Convert.ToString(lessonNomber));
                 await Navigation.PushAsync(new Page2(result));
             }
         }
@@ -174,7 +167,7 @@ namespace App1
             return "";
         }
 
-        static string ConvertTime(DateTime selectedDate)
+        static string ConvertDate(DateTime selectedDate)
         {
             string returnedDate = $"{selectedDate.Year}-0{selectedDate.Month}-{selectedDate.Day}";
             return returnedDate;
